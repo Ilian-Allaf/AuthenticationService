@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:postgrespassword@localhost:5432/postgres?schema=auth"
+}
+
+model User {
+  id                        String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  emailVerified             Boolean                 @default(false) @map("email_verified")
+  username                  String                  @unique
+  password                  String?
+  email                     String                  @unique
+  role                      String                  @default("user")
+  image                     String?
+
+  appleId                   String?                 @unique @map("apple_id")
+  googleId                  String?                 @unique @map("google_id")
+  createdAt                 DateTime                @db.Timestamptz @default(now()) @map("created_at")
+  updatedAt                 DateTime?               @db.Timestamptz @updatedAt @map("updated_at")
+
+  sessions                  Session[]
+  verificationRequests      VerificationRequest []
+  passwordResetToken        PasswordResetToken[]
+
+  @@map("user")
+}
+
+model Session {
+  id                        String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token                     String                  @unique
+  userId                    String                  @unique @map("user_id")
+  createdAt                 DateTime                @db.Timestamptz @default(now()) @map("created_at")
+  updatedAt                 DateTime?               @db.Timestamptz @map("updated_at")
+  ip                        String?                 @db.Inet
+
+  user                      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+
+model VerificationRequest  {
+  id                        String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token                     String                  @unique
+  createdAt                 DateTime                @default(now()) @map("created_at")
+  verifiedAt                DateTime?               @map("verified_at")
+  userId                    String                  @map("user_id")
+
+  user                      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("verification_request")
+}
+
+model PasswordResetToken {
+  id                        String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  token                     String                  @unique
+  createdAt                 DateTime                @default(now()) @map("created_at")
+  resetAt                   DateTime?               @map("reset_at")
+  userId                    String                  @map("user_id")
+
+  user                      User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("password_reset_token")
+}
