@@ -1,17 +1,21 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt';
-import { randomUUID } from 'crypto';
-import { CookieOptions, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import validator from 'validator';
+import { redisClient } from '../../utils/redisClient';
+import Redis from 'ioredis';
 
-const client = new PrismaClient();
+const redis = new Redis();
+const client = new PrismaClient()
+
+
 
 export default async function logIn(req: Request, res: Response): Promise<Response> {
     const { email, password} = req.body;
 
-    // if(!email || !validator.isEmail(email)){
-    //     return res.status(422).json({ message: 'Invalid Email', field: 'email' });
-    // }
+    if(!email || !validator.isEmail(email)){
+        return res.status(422).json({ message: 'Invalid Email', field: 'email' });
+    }
     try {
         const user = await client.user.findUnique({
             where: {
@@ -22,22 +26,28 @@ export default async function logIn(req: Request, res: Response): Promise<Respon
         if (!user || !user.password || !await bcrypt.compare(password, user.password)) {
             return res.status(422).json({ message: 'Wrong email or password' });
         }
+        //S'il existe déja une session pour user.id dans la db redis on ne creer pas de nouvelle session
 
-        const sessionToken = await createSession(user.id);
+        if(await redisClient.exists(user.id)){
+            return res.status(200).json({ message: 'Already Logged-In', user: req.session.user});
+        }
+        
+        req.session.regenerate((err) =>{
+            if(err){
+                console.error(err);
+            }
+            req.session.user = {
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                emailVerified: user.emailVerified,
+                role: user.role,
+              };
+            req.session.save();
+        })
+
         await client.$disconnect()
-
-        const cookieOptions: CookieOptions = {
-            httpOnly: true,
-            secure: process.env.NODE_ENV !== 'dev',
-            sameSite: false,
-            maxAge: 1000 * 60 * 60 * parseInt(process.env.SESSION_LIFE_TIME!),
-            // domain: process.env.ALLOWED_ORIGIN,
-            // path: '/',
-        };
-
-        res.cookie('sessionToken', sessionToken, cookieOptions);
-
-        return res.status(200).json({ message: 'Login successful'});
+        return res.status(200).json({ message: 'Login successful', user: req.session.user});
         
     } 
     catch (err) {
@@ -45,34 +55,4 @@ export default async function logIn(req: Request, res: Response): Promise<Respon
         console.error('Error executing query', err);
         return res.status(500).json({ message: 'Internal Server Error' });
     };
-}
-
-async function createSession(userId: string): Promise<string> {
-    const token = `${randomUUID()}${randomUUID()}`.replace(/-/g, '');
-
-    try {
-        await client.$transaction(
-            async (tx) =>{
-                await tx.session.deleteMany({
-                    where: {
-                        userId: userId,
-                    },
-                });
-        
-                await tx.session.create({
-                    data: {
-                        userId: userId,
-                        token: token,
-                    },
-                });
-            }
-        );
-        await client.$disconnect();
-
-    } 
-    catch (err) {
-        await client.$disconnect();
-        console.error('Error executing query', err);
-    }
-    return token;
 }

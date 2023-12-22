@@ -1,0 +1,44 @@
+version: "3.6"
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./tables:/docker-entrypoint-initdb.d/
+    environment:
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+
+  maildev:
+    image: maildev/maildev
+    restart: always
+    ports:
+      - "8081:1080"
+      - "8025:1025"
+
+  redis:
+    image: redis:latest
+    restart: always
+    volumes:
+      - redis_volume_data:/data
+    environment:
+      REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    ports:
+      - "6379:6379"
+    depends_on:
+      - postgres
+
+  redis_insight:
+    image: redislabs/redisinsight:latest
+    container_name: redis_insight
+    restart: always
+    ports:
+      - 8001:8001
+    volumes:
+      - redis_insight_volume_data:/db
+volumes:
+  db_data:
+  redis_volume_data:
+  redis_insight_volume_data:

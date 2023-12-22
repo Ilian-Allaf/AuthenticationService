@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express';
 import validator from 'validator';
 
-export default async function forgotPassword(req: Request, res: Response): Promise<Response> {
+export default async function handleForgotPassword(req: Request, res: Response): Promise<Response> {
     const client = new PrismaClient();
 
     const { email }  = req.body

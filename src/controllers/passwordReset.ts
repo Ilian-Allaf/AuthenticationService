@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 
-export default async function signUp(req: Request, res: Response): Promise<Response> {
+export default async function handlePasswordReset(req: Request, res: Response): Promise<Response> {
   const client = new PrismaClient();
   const {token, password}  = req.body
 

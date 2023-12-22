@@ -61,12 +61,20 @@ export default async function signUp(req: Request, res: Response): Promise<Respo
             password: hashedPassword,
           },
         });
-      await sendVerificationEmail({email: createdUser.email, userId: createdUser.id});
+
+      await sendVerificationEmail({email: createdUser.email, userId: createdUser.id, client: tx});
+      req.session.user = {
+        id: createdUser.id,
+        email: createdUser.email,
+        username: createdUser.username,
+        emailVerified: createdUser.emailVerified,
+        role: createdUser.role,
+      };
       }
     );
 
     await client.$disconnect()
-    return res.status(200).json({ message: 'Sign-up successful' });
+    return res.status(200).json({ message: 'Sign-up successful', user: req.session.user });
 
   } 
   catch (error) {
@@ -74,4 +82,4 @@ export default async function signUp(req: Request, res: Response): Promise<Respo
     console.error('Error during sign-up:', error);
     return res.status(500).json({ message: 'Internal Server Error. Try Again Later' });
   }
-}
+};

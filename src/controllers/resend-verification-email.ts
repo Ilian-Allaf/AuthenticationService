@@ -21,7 +21,7 @@ export default async function resendVerificationEmail(req: Request, res: Respons
 
     const user = sessionWithUser.user;
     try{
-        await sendVerificationEmail({email: user.email, userId: user.id});
+        await sendVerificationEmail({email: user.email, userId: user.id, client: client});
         await client.$disconnect()
         return res.status(200).json({ message: 'Successfully resent email !' });
 
