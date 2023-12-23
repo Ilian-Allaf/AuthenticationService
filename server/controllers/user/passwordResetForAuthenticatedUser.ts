@@ -1,7 +1,7 @@
-import { isPasswordValid } from '../../../utils/passwordCheck';
+import { isPasswordValid } from '../../utils/passwordCheck';
 import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export default async function passwordResetForAuthenticatedUser(req: Request, res: Response): Promise<Response> {
   const client = new PrismaClient();

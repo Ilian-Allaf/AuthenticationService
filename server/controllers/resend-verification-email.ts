@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express';
-import { sendVerificationEmail } from '../../utils/sendEmail';
+import { sendVerificationEmail } from '../utils/sendEmail';
 
 export default async function resendVerificationEmail(req: Request, res: Response): Promise<Response> {
     const client = new PrismaClient();

@@ -36,58 +36,82 @@ function sendEmail({ to, subject, html }) {
             return info;
         }
         catch (error) {
-            console.error('Erreur lors de l\'envoi de l\'e-mail: ', error);
             throw error;
         }
     });
 }
 exports.sendEmail = sendEmail;
-function sendVerificationEmail({ email, userId }) {
+function sendVerificationEmail({ email, userId, client }) {
     return __awaiter(this, void 0, void 0, function* () {
-        const client = new client_1.PrismaClient();
-        const token = yield client.verificationRequest.create({
-            data: {
-                userId: userId,
-                token: `${(0, crypto_1.randomUUID)()}${(0, crypto_1.randomUUID)()}`.replace(/-/g, ''),
-            },
-        });
-        const emailContent = (0, emailTemplates_1.baseTemplate)({
-            title: 'Verify your email address',
-            subtitle: 'To continue setting up your account, please verify that this is your email address.',
-            buttonLink: `${process.env.NEXTAUTH_URL}/api/verify-email/${token.token}`,
-            buttonText: 'Verify email address',
-            additionalText: 'This link will expire in 5 days. if you did not make this request, please disregard this email.'
-        });
-        yield sendEmail({
-            to: email,
-            subject: "Verify your email address",
-            html: emailContent,
-        });
-        yield client.$disconnect();
+        try {
+            yield client.verificationRequest.deleteMany({
+                where: {
+                    userId: userId,
+                },
+            });
+            const token = yield client.verificationRequest.create({
+                data: {
+                    userId: userId,
+                    token: `${(0, crypto_1.randomUUID)()}${(0, crypto_1.randomUUID)()}`.replace(/-/g, ''),
+                },
+            });
+            const emailContent = (0, emailTemplates_1.baseTemplate)({
+                title: 'Verify your email address',
+                subtitle: 'To continue setting up your account, please verify that this is your email address.',
+                buttonLink: `${process.env.NEXTAUTH_URL}/api/verify-email/${token.token}`,
+                buttonText: 'Verify email address',
+                additionalText: 'This link will expire in 5 days. if you did not make this request, please disregard this email.'
+            });
+            yield sendEmail({
+                to: email,
+                subject: "Verify your email address",
+                html: emailContent,
+            });
+        }
+        catch (err) {
+            throw err;
+        }
     });
 }
 exports.sendVerificationEmail = sendVerificationEmail;
+;
 function sendResetPasswordEmail({ email, userId }) {
     return __awaiter(this, void 0, void 0, function* () {
-        const token = yield client.passwordResetToken.create({
-            data: {
-                userId: userId,
-                token: `${(0, crypto_1.randomUUID)()}${(0, crypto_1.randomUUID)()}`.replace(/-/g, ''),
-            },
-        });
-        const emailContent = (0, emailTemplates_1.baseTemplate)({
-            title: 'Reset password',
-            subtitle: 'A password change has been requested for your account. If this was you, please use the link below to reset your password',
-            buttonLink: `${process.env.NEXTAUTH_URL}/password-reset/${token.token}`,
-            buttonText: 'Reset password',
-            additionalText: ''
-        });
-        yield sendEmail({
-            to: email,
-            subject: "Reset password",
-            html: emailContent,
-        });
-        yield client.$disconnect();
+        try {
+            yield client.$transaction((tx) => __awaiter(this, void 0, void 0, function* () {
+                yield tx.passwordResetToken.deleteMany({
+                    where: {
+                        userId: userId,
+                    },
+                });
+                const token = yield tx.passwordResetToken.create({
+                    data: {
+                        userId: userId,
+                        token: `${(0, crypto_1.randomUUID)()}${(0, crypto_1.randomUUID)()}`.replace(/-/g, ''),
+                    },
+                });
+                const emailContent = (0, emailTemplates_1.baseTemplate)({
+                    title: 'Reset password',
+                    subtitle: 'A password change has been requested for your account. If this was you, please use the link below to reset your password',
+                    buttonLink: `${process.env.NEXTAUTH_URL}/password-reset/${token.token}`,
+                    buttonText: 'Reset password',
+                    additionalText: ''
+                });
+                yield sendEmail({
+                    to: email,
+                    subject: "Reset password",
+                    html: emailContent,
+                });
+            }), {
+                maxWait: 5000, // default: 2000
+                timeout: 10000, // default: 5000
+            });
+            yield client.$disconnect();
+        }
+        catch (err) {
+            yield client.$disconnect();
+            throw err;
+        }
     });
 }
 exports.sendResetPasswordEmail = sendResetPasswordEmail;

@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt';
+import { Prisma, PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import validator from 'validator';
 import domains from 'disposable-email-domains';
-import { isPasswordValid } from '../../utils/passwordCheck';
-import { sendVerificationEmail } from '../../utils/sendEmail';
+import { isPasswordValid } from '../utils/passwordCheck';
+import { sendVerificationEmail } from '../utils/sendEmail';
 
 const client = new PrismaClient();
 
@@ -53,7 +53,7 @@ export default async function signUp(req: Request, res: Response): Promise<Respo
 
 
     await client.$transaction(
-      async (tx) =>{
+      async (tx: Prisma.TransactionClient): Promise<void> => {
         const createdUser = await tx.user.create({
           data: {
             username: username,

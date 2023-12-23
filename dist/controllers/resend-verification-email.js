@@ -10,24 +10,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const client = new client_1.PrismaClient();
-function logOut(req, res) {
+const sendEmail_1 = require("../utils/sendEmail");
+function resendVerificationEmail(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const sessionToken = req.body.sessionToken;
-        try {
-            yield client.session.delete({
-                where: {
-                    token: sessionToken.id,
-                }
-            });
+        const client = new client_1.PrismaClient();
+        const { sessionToken } = req.body;
+        const sessionWithUser = yield client.session.findUnique({
+            where: {
+                token: sessionToken,
+            },
+            include: {
+                user: true,
+            },
+        });
+        if (!sessionWithUser) {
             yield client.$disconnect();
-            return res.status(200).json({ message: 'Logout successful' });
+            return res.status(422).json({ message: 'Invalid session' });
+        }
+        const user = sessionWithUser.user;
+        try {
+            yield (0, sendEmail_1.sendVerificationEmail)({ email: user.email, userId: user.id, client: client });
+            yield client.$disconnect();
+            return res.status(200).json({ message: 'Successfully resent email !' });
         }
         catch (err) {
             yield client.$disconnect();
-            console.error('Error executing query', err);
-            return res.status(200).json({ message: 'Internal Server Error' });
+            return res.status(500).json({ message: 'Internal Server Error. Try Again Later' });
         }
     });
 }
-exports.default = logOut;
+exports.default = resendVerificationEmail;

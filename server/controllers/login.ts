@@ -1,8 +1,8 @@
 import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Request, Response } from 'express';
 import validator from 'validator';
-import { redisClient } from '../../utils/redisClient';
+import { redisClient } from '../utils/redisClient';
 import Redis from 'ioredis';
 
 const redis = new Redis();

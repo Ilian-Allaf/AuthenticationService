@@ -1,4 +1,4 @@
-import { sendResetPasswordEmail } from '../../utils/sendEmail';
+import { sendResetPasswordEmail } from '../utils/sendEmail';
 import { PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express';
 import validator from 'validator';

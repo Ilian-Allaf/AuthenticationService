@@ -3,7 +3,6 @@ import { baseTemplate } from './emailTemplates';
 import { randomUUID } from 'crypto';
 import { PrismaClient, Prisma } from '@prisma/client'
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { DefaultArgs } from '@prisma/client/runtime/library';
 
 const client = new PrismaClient();
 
@@ -31,7 +30,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
     
 }
 
-export async function sendVerificationEmail({email, userId, client}:{email: string, userId: string, client: Omit<PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"> | PrismaClient}): Promise<void> {
+export async function sendVerificationEmail({email, userId, client}:{email: string, userId: string, client: Prisma.TransactionClient | PrismaClient}): Promise<void> {
   try {
         await client.verificationRequest.deleteMany({
           where: {
@@ -68,7 +67,7 @@ export async function sendVerificationEmail({email, userId, client}:{email: stri
 export async function sendResetPasswordEmail({email, userId}:{email: string, userId: string}){
   try {
     await client.$transaction(
-      async (tx) =>{
+      async (tx: Prisma.TransactionClient): Promise<void> =>{
         await tx.passwordResetToken.deleteMany({
           where: {
             userId: userId,
@@ -99,7 +98,6 @@ export async function sendResetPasswordEmail({email, userId}:{email: string, use
       {
         maxWait: 5000, // default: 2000
         timeout: 10000, // default: 5000
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable, // optional, default defined by database configuration
       }
     );
     await client.$disconnect()

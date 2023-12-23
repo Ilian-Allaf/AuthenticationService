@@ -1,20 +1,29 @@
-# Use the official Node.js image as the base image
-FROM node:20.10.0
+FROM node:20.10.0 as builder
 
-# Set the working directory inside the container
 WORKDIR /
 
-# Copy package.json and package-lock.json to the working directory
 COPY package*.json ./
+COPY prisma ./
+
+RUN npm ci
+
 COPY . .
 
-RUN npm install
-
-# Build the TypeScript code
 RUN npm run build
 
-# Expose the port on which your application will run
-# EXPOSE 3000
 
-# Command to run the application
-CMD [ "npm", "start" ]
+FROM node:20.10.0
+
+WORKDIR /
+
+COPY package*.json ./
+
+RUN npm ci --production
+RUN npm install -g prisma
+
+COPY --from=builder /dist ./dist
+COPY --from=builder /prisma ./prisma
+
+RUN npx prisma generate
+
+CMD [ "node", "dist/app.js" ]

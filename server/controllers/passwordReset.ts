@@ -1,7 +1,7 @@
-import { isPasswordValid } from '../../utils/passwordCheck';
-import { PrismaClient } from '@prisma/client'
+import { isPasswordValid } from '../utils/passwordCheck';
+import { Prisma, PrismaClient } from '@prisma/client'
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 export default async function handlePasswordReset(req: Request, res: Response): Promise<Response> {
   const client = new PrismaClient();
@@ -37,7 +37,7 @@ export default async function handlePasswordReset(req: Request, res: Response): 
 
     const hashedPassword = await bcrypt.hash(password, 10);
     await client.$transaction(
-      async (tx) =>{
+      async (tx: Prisma.TransactionClient): Promise<void> => {
         await tx.user.update({
           where: { id: passwordResetToken.userId },
           data: {

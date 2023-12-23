@@ -13,11 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const validator_1 = __importDefault(require("validator"));
 const disposable_email_domains_1 = __importDefault(require("disposable-email-domains"));
-const passwordCheck_1 = require("utils/passwordCheck");
-const sendEmail_1 = require("utils/sendEmail");
+const passwordCheck_1 = require("../utils/passwordCheck");
+const sendEmail_1 = require("../utils/sendEmail");
 const client = new client_1.PrismaClient();
 function signUp(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -52,26 +52,33 @@ function signUp(req, res) {
             if (!(0, passwordCheck_1.isPasswordValid)(password)) {
                 return res.status(422).json({ message: 'Password is too weak', field: 'password' });
             }
-            const hashedPassword = yield bcrypt_1.default.hash(password, 10);
-            const createdUser = yield client.user.create({
-                data: {
-                    username: username,
-                    email: email,
-                    password: hashedPassword,
-                },
-            });
-            yield (0, sendEmail_1.sendVerificationEmail)({ email: createdUser.email, userId: createdUser.id });
+            const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
+            yield client.$transaction((tx) => __awaiter(this, void 0, void 0, function* () {
+                const createdUser = yield tx.user.create({
+                    data: {
+                        username: username,
+                        email: email,
+                        password: hashedPassword,
+                    },
+                });
+                yield (0, sendEmail_1.sendVerificationEmail)({ email: createdUser.email, userId: createdUser.id, client: tx });
+                req.session.user = {
+                    id: createdUser.id,
+                    email: createdUser.email,
+                    username: createdUser.username,
+                    emailVerified: createdUser.emailVerified,
+                    role: createdUser.role,
+                };
+            }));
             yield client.$disconnect();
-            if (!createdUser.id) {
-                return res.status(500).json({ message: 'Sign-up failed' });
-            }
-            return res.status(200).json({ message: 'Sign-up successful' });
+            return res.status(200).json({ message: 'Sign-up successful', user: req.session.user });
         }
         catch (error) {
             yield client.$disconnect();
             console.error('Error during sign-up:', error);
-            return res.status(500).json({ message: 'Internal Server Error' });
+            return res.status(500).json({ message: 'Internal Server Error. Try Again Later' });
         }
     });
 }
 exports.default = signUp;
+;

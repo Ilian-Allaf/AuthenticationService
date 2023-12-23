@@ -13,13 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
-const bcrypt_1 = __importDefault(require("bcrypt"));
-const crypto_1 = require("crypto");
 const validator_1 = __importDefault(require("validator"));
-const client = new client_1.PrismaClient();
-function logIn(req, res) {
+function emailResetForAuthenticatedUser(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { email, password } = req.body;
+        const client = new client_1.PrismaClient();
+        const { email } = req.body;
         if (!email || !validator_1.default.isEmail(email)) {
             return res.status(422).json({ message: 'Invalid Email', field: 'email' });
         }
@@ -29,38 +27,25 @@ function logIn(req, res) {
                     email: email,
                 }
             });
-            if (!user || !user.password || !(yield bcrypt_1.default.compare(password, user.password))) {
-                return res.status(422).json({ message: 'Wrong email or password' });
+            if (user) {
+                return res.status(409).json({ message: 'Email already taken', field: 'email' });
             }
-            const sessionToken = yield createSession(user.id);
-            yield client.$disconnect();
-            return res.status(200).json({ message: 'Login successful', sessionToken: sessionToken });
-        }
-        catch (err) {
-            yield client.$disconnect();
-            console.error('Error executing query', err);
-            return res.status(200).json({ message: 'Internal Server Error' });
-        }
-    });
-}
-exports.default = logIn;
-function createSession(userId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const token = `${(0, crypto_1.randomUUID)()}${(0, crypto_1.randomUUID)()}`.replace(/-/g, '');
-        try {
-            yield client.session.create({
+            req.session.user.email = email;
+            yield client.user.update({
+                where: {
+                    id: req.session.user.id,
+                },
                 data: {
-                    userId: userId,
-                    token: token,
-                    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days
+                    email: email,
                 }
             });
-            yield client.$disconnect();
+            return res.status(200).json({ message: 'Successfully changed email !', user: req.session.user });
         }
         catch (err) {
             yield client.$disconnect();
             console.error('Error executing query', err);
+            return res.status(500).json({ message: 'Internal Server Error' });
         }
-        return token;
     });
 }
+exports.default = emailResetForAuthenticatedUser;

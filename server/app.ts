@@ -7,7 +7,7 @@ import helmet, { xPoweredBy } from 'helmet';
 import csp from 'helmet-csp';
 import session from 'express-session';
 import RedisStore from "connect-redis"
-import { redisClient } from '../utils/redisClient';
+import { redisClient } from './utils/redisClient';
 import uuid from 'node-uuid';
 import http from 'http';
 import { body, validationResult } from 'express-validator';
