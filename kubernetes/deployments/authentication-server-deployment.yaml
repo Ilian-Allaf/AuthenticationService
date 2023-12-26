@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: authentication-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: authentication-server
+  template:
+    metadata:
+      labels:
+        app: authentication-server
+    spec:
+      containers:
+      - name: authentication-server
+        image: authentication-server:latest
+        ports:
+        - containerPort: 3000
+        env:
+          - name: REDIS_HOST
+            value: redis
+          - name: REDIS_PORT
+            value: "6379"
+          - name: REDIS_PASSWORD
+            value: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+          - name: POSTGRES_URL
+            value: "postgresql://postgres:postgrespassword@postgres:5432/postgres?schema=public"
+          - name: JWT_SECRET
+            value: "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCf+40bkGQLbIv2\niPsKnbo/zZhlnFrt2LT3BB4ENUzY+4G0cOn7EGzIftFGGhjnweOw5MvuoiDWS3GI\ncd43PHIgZ715AKDKLVrP0AbDkLM8k6S41skDgr2Fn79F9ve6W349gsO4XXXwRdX9\nZYeCc/5rcBB2VMJzyVmwirWW4poG4fFVusVBmPfLkj0wmQnRHQO7CMe3qYjNjids\n04Ivw0KiFdI52luh7JD/3LRvmKKYFMsqvjFqlamdnGB1Ec5INRzjx1WOlnI6SbIG\n572lAFSl6yivkVkM4M+l+rogVyufLWaOvZ10K2gFUijEQRGe2dVaDKedIWNpUFDy\n+s5O4iR3AgMBAAECggEAFB1csIqHCaisMGMorT0Hnd4Luzrdc+o7VpN98qmA8Acv\nV7CauqZmBw9q4JWHbBxEtIkP2wEnf8ocjDtE5U0ETG6+s+gQT1tEf7x4HT6kSomF\nvHfE7lwR2CstsW5L13KJfNJkKVoW6g7dyO5rC0vqQTfl2fruOACo9jl6e24iT5sF\n/GWSFtjUZzI/AtU5GNMcjBa0TyuVGnNYY1paWT3hCupaLS4iUOSAnFgOG+NO7KlC\nK7DywLAKjp8Gt3ktzNry02VcbvJQHcQN6ZPTJdl4AQANkM1CA3UWJ3BeUOA2+4DR\nhQZzAOYbDINtVsjLsTeYs1jjbwfLQacyoduVamYHgQKBgQDTf8FYmHrtATac3LLt\nHHPAjIUkQFHE1X5i0szfH+JRqqtfJ/jMd+PAfHZYlDeRawQMgduoNA0+mFY6oZIf\nLFsqusT+Vh4n6WNaxjq/8QD1i1OmajNGV9vX2MJ6oSlP+4as0eN/ohhIvQacXnDe\nhUae3PP8A7oBQ1HDfbhSrsdShQKBgQDBpOaVCTaMCEmJzQ6ArlEcbwjYeNZj1/xL\nGq+30/j6oo6UJAPfuPvX8Xvn6cAsBQtQJwxW9NSewl3XlN52wB2PSo6GT1/2Tkjl\n/YPVorRgxFhsX2B4lnn7Y6JyKTqJwLywm8vy18G5y5LSqrfD8DbxjPQsGU22XBnC\nXXR2d/txywKBgQCKtdEyr95/LjqJKl3XEMAB2qc/nUeDlpmraqGe/KRL92kpoWeV\nglPG3Fopwhunrc4b/db4PBsroHF9RpY1B7xLC+9C92wTtQfKcxP46rE8WUJldGVo\njxrKN4llL+mOYWJ0Wbug68iNfBun1nCkIDiu3C7QbAlD5sjrM7r9z08+mQKBgQCI\n5UXpmLDKQFWUqLWW/ST0X/614n9V6GxAwCX3ZFCBB4iaa/edIs5P9DTvV832kL5V\ntLVBiCYD8k6bSHAZLWn4UfH+O4EQxHk+toGL91Fjk4sbWjX+KgskUGSYJlNu7SW4\nCPweuq8G5UbvzabKSzjcfRRlVKIeyG+he6YI1nuZDwKBgC5xK1G2tehYKCgNdHB7\nBwsQ/9q8XAWGj2GpIodT9vNeRdYW3mCNYfHSCcAkZF5AqQtSsGRLmScJocxHtjaY\nazYkZghqMOUx/rV/cfnNTlOtG/HNjkZXOz4+CVbXvy0zpOCy5XLxiszP3bsVzxZL\ndt+rZESJKjQzmseJbS+3Z/fS\n-----END PRIVATE KEY-----\n"
+          - name: PORT
+            value: "3000"
+          - name: ALLOWED_ORIGIN
+            value: "*"
+          - name: MAIL_SERVER_HOST
+            value: "maildev"
+          - name: MAIL_SERVER_PORT
+            value: "8025"
+          - name: MAIL_FROM
+            value: "ilian.allaf@outlook.fr"
+          - name: NODE_ENV
+            value: "dev"
+          - name: SESSION_NAME
+            value: "sid"
+          - name: SESSION

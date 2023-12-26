@@ -66,6 +66,17 @@ services:
       SESSION_SECRET: "secret"
       COOKIE_DOMAIN: ""
       COOKIE_PATH: "/"
+  nginx-proxy:
+    image: nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # Montez votre configuration Nginx personnalisée
+      - ./nginx/certs:/etc/nginx/certs            # Montez vos certificats TLS
+    depends_on:
+      - authentication-server
 
 volumes:
   db_data:
