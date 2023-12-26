@@ -15,9 +15,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("@prisma/client");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const validator_1 = __importDefault(require("validator"));
-const redisClient_1 = require("../utils/redisClient");
-const ioredis_1 = __importDefault(require("ioredis"));
-const redis = new ioredis_1.default();
+// import { redisClient } from '../utils/redisClient';
+// import Redis from 'ioredis';
+// const redis = new Redis();
 const client = new client_1.PrismaClient();
 function logIn(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -35,9 +35,9 @@ function logIn(req, res) {
                 return res.status(422).json({ message: 'Wrong email or password' });
             }
             //S'il existe déja une session pour user.id dans la db redis on ne creer pas de nouvelle session
-            if (yield redisClient_1.redisClient.exists(user.id)) {
-                return res.status(200).json({ message: 'Already Logged-In', user: req.session.user });
-            }
+            // if(await redisClient.exists(user.id)){
+            //     return res.status(200).json({ message: 'Already Logged-In', user: req.session.user});
+            // }
             req.session.regenerate((err) => {
                 if (err) {
                     console.error(err);

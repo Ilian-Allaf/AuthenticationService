@@ -26,4 +26,4 @@ COPY --from=builder /prisma ./prisma
 
 RUN npx prisma generate
 
-CMD [ "node", "dist/app.js" ]
+CMD [ "npm", "start" ]

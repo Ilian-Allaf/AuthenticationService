@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.redisClient = void 0;
 const express_1 = __importDefault(require("express"));
 const service_1 = __importDefault(require("./routes/service"));
 const body_parser_1 = __importDefault(require("body-parser"));
@@ -11,21 +10,12 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const helmet_csp_1 = __importDefault(require("helmet-csp"));
 const express_session_1 = __importDefault(require("express-session"));
-const connect_redis_1 = __importDefault(require("connect-redis"));
+// import RedisStore from "connect-redis"
+// import { redisClient } from './utils/redisClient';
 const node_uuid_1 = __importDefault(require("node-uuid"));
-const redis_1 = require("redis");
-exports.redisClient = (0, redis_1.createClient)({
-    username: 'default',
-    password: 'eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81',
-    socket: {
-        host: 'redis',
-        port: 6379,
-    }
-});
-exports.redisClient.connect().catch(console.error);
-const store = new connect_redis_1.default({
-    client: exports.redisClient,
-});
+// const store = new RedisStore({
+//   client: redisClient,
+// });
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
 app.disable("x-powered-by");
@@ -35,7 +25,7 @@ app.use((0, express_session_1.default)({
     genid: function () { return node_uuid_1.default.v4(); },
     name: process.env.SESSION_NAME,
     secret: process.env.SESSION_SECRET,
-    store: store,
+    // store: store,
     resave: false,
     saveUninitialized: false,
     cookie: {
