@@ -46,8 +46,8 @@ services:
     restart: always
     # ports:
     #   - "3000:3000" 
-    volumes:
-      - ./certs:/certs
+    # volumes:
+    #   - ./certs:/certs
     depends_on:
       - postgres
       - redis
