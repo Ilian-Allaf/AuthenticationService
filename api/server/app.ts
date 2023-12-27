@@ -1,15 +1,16 @@
-import express, { NextFunction } from 'express';
+import express from 'express';
 import router from './routes/service';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import startScheduler from './scheduler';
 import helmet, { xPoweredBy } from 'helmet';
 import csp from 'helmet-csp';
 import session from 'express-session';
 import RedisStore from "connect-redis"
 import { redisClient } from './utils/redisClient';
 import uuid from 'node-uuid';
-import http from 'http';
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
 import { body, validationResult } from 'express-validator';
 
 declare module "express-session" {
@@ -77,4 +78,12 @@ app.use(csp({
 
 app.use('/', router);
 
+// const httpsOptions = {
+//   key: fs.readFileSync(path.resolve(__dirname, '../certs/privkey.pem')),
+//   cert: fs.readFileSync(path.resolve(__dirname, '../certs/fullchain.pem')),
+// };
+
+// https.createServer(httpsOptions, app).listen(port, () => {
+//   console.log(`Listening on port ${port} (HTTPS)`);
+// });
 app.listen(port, () => console.log(`Listening on port ${port}`));

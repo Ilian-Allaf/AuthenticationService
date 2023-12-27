@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "dist",
     "baseUrl": ".",
     "skipLibCheck": true,                                 /* Skip type checking all .d.ts files. */
     "target": "es2016", 

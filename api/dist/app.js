@@ -10,12 +10,15 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const helmet_csp_1 = __importDefault(require("helmet-csp"));
 const express_session_1 = __importDefault(require("express-session"));
-// import RedisStore from "connect-redis"
-// import { redisClient } from './utils/redisClient';
+const connect_redis_1 = __importDefault(require("connect-redis"));
+const redisClient_1 = require("./utils/redisClient");
 const node_uuid_1 = __importDefault(require("node-uuid"));
-// const store = new RedisStore({
-//   client: redisClient,
-// });
+const https_1 = __importDefault(require("https"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const store = new connect_redis_1.default({
+    client: redisClient_1.redisClient,
+});
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
 app.disable("x-powered-by");
@@ -25,7 +28,7 @@ app.use((0, express_session_1.default)({
     genid: function () { return node_uuid_1.default.v4(); },
     name: process.env.SESSION_NAME,
     secret: process.env.SESSION_SECRET,
-    // store: store,
+    store: store,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -59,4 +62,11 @@ app.use((0, helmet_csp_1.default)({
     }
 }));
 app.use('/', service_1.default);
-app.listen(port, () => console.log(`Listening on port ${port}`));
+const httpsOptions = {
+    key: fs_1.default.readFileSync(path_1.default.resolve(__dirname, 'cert/private-key.key')),
+    cert: fs_1.default.readFileSync(path_1.default.resolve(__dirname, 'cert/certificate.crt')),
+};
+https_1.default.createServer(httpsOptions, app).listen(port, () => {
+    console.log(`Listening onn port ${port} (HTTPS)`);
+});
+// app.listen(port, () => console.log(`Listening on port ${port}`));
