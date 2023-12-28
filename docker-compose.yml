@@ -44,10 +44,6 @@ services:
     build:
       context: ./api
     restart: always
-    # ports:
-    #   - "3000:3000" 
-    # volumes:
-    #   - ./certs:/certs
     depends_on:
       - postgres
       - redis
@@ -77,7 +73,7 @@ services:
       - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./certs:/etc/nginx/certs
+      - ./nginx/certs:/etc/nginx/certs
     depends_on:
       - api
 
